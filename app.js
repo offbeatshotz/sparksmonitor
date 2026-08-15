@@ -1,8 +1,7 @@
-import { Plugins } from '@capacitor/core';
-const { BackgroundGeolocation } = Plugins;
-
 // Check if Capacitor is available
-const isCapacitor = typeof (Capacitor) !== 'undefined';
+console.log("app.js loading...");
+const isCapacitor = typeof (Capacitor) !== 'undefined' && Capacitor.Plugins;
+const BackgroundGeolocation = isCapacitor ? Capacitor.Plugins.BackgroundGeolocation : null;
 
 if (isCapacitor || ('geolocation' in navigator)) { // Keep browser geolocation as fallback or for testing PWA in browser
     let watchId; // For browser geolocation, if used
@@ -44,9 +43,11 @@ if (isCapacitor || ('geolocation' in navigator)) { // Keep browser geolocation a
             SpeechSynthesis.speak(utterance);
         } else if (speaking) {
             console.log("Already speaking, queuing text: ", text);
-            // Optionally queue utterances or interrupt current speech
         }
     }
+    
+    // Make speak available to index.html
+    window.speak = speak;
 
     // Helper function to start Speech Recognition
     function startListening(onResultCallback, onEndCallback, interimResults = false) {

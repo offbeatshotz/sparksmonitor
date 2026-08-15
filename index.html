@@ -233,6 +233,16 @@
                 let amount = 0;
                 if (amountMatch) {
                     amount = parseFloat(amountMatch[0].replace('$', ''));
+                    if (!isNaN(amount) && amount > 0) {
+                        // Update global total and sync with app.js storage
+                        let currentTotal = parseFloat(localStorage.getItem('totalEarnings')) || 0;
+                        currentTotal += amount;
+                        localStorage.setItem('totalEarnings', currentTotal.toFixed(2));
+                        
+                        // Update display if the function from app.js exists, otherwise do it here
+                        const display = document.getElementById('total-earnings');
+                        if (display) display.textContent = `$${currentTotal.toFixed(2)}`;
+                    }
                 }
 
                 const item = document.createElement('div');
@@ -251,6 +261,11 @@
         }
 
         async function startMonitoring() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                showToast("Screen capture not supported on this device/browser.", "bg-red-600");
+                if (window.speak) window.speak("Screen capture is not supported on this device. iOS PWAs do not allow screen monitoring.");
+                return;
+            }
             try {
                 const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: "always" }, audio: false });
                 video.srcObject = stream;

@@ -3,8 +3,6 @@ const ASSETS = [
   './',
   './index.html',
   './app.js',
-  './output.css',
-  './style.css',
   './manifest.json',
   'https://cdn.tailwindcss.com',
   'https://unpkg.com/tesseract.js@v4.0.1/dist/tesseract.min.js',
