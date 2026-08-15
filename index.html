@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spark Monitor & Car Tracker Pro</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://core-normal.traeapi.us/api/ide/v1/text_to_image?prompt=spark+monitor+car+tracker+app+icon+blue+emerald+minimalist&image_size=square">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/tesseract.js@v4.0.1/dist/tesseract.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;400;700&display=swap');
+        .timer-font { font-family: 'JetBrains+Mono', monospace; }
+        #monitor-video { display: none; }
+        .scroll-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-slate-800 rounded-3xl shadow-2xl p-6 space-y-6 border border-slate-700">
+        <!-- Header -->
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                    Spark & Tracker Pro
+                </h1>
+                <p class="text-slate-500 text-[10px] uppercase tracking-widest font-bold">Auto-Pickup & Mileage Tracking</p>
+            </div>
+            <div class="bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-700 text-right">
+                <div class="text-[10px] text-slate-500 uppercase font-bold">Total Earnings</div>
+                <div id="total-earnings" class="text-xl font-bold text-emerald-400 timer-font">$0.00</div>
+            </div>
+        </div>
+
+        <!-- Timer Display -->
+        <div class="flex flex-col items-center py-4 bg-slate-900/50 rounded-2xl border border-slate-700/50">
+            <div id="timer-display" class="timer-font text-6xl font-thin text-blue-400 tracking-tighter">
+                04:00
+            </div>
+            <div class="text-[10px] uppercase tracking-widest text-slate-500 mt-2">Time Until Cancellation Risk</div>
+        </div>
+
+        <!-- Mileage & Tracking Status -->
+        <div class="bg-slate-900/50 rounded-2xl p-4 border border-slate-700/50 space-y-2">
+            <div class="flex justify-between items-center text-[10px] text-slate-500 uppercase font-bold">
+                <span>Mileage Tracking</span>
+                <div class="flex items-center space-x-1">
+                    <div id="status-indicator" class="w-2 h-2 rounded-full bg-slate-500"></div>
+                    <span id="mileage-status">Inactive</span>
+                </div>
+            </div>
+            <div class="text-center">
+                <span id="mileage-display" class="text-3xl font-bold text-blue-400 timer-font">0.00</span>
+                <span class="text-[10px] text-slate-500 uppercase ml-1">Miles Driven</span>
+            </div>
+        </div>
+
+        <!-- Main Controls -->
+        <div class="grid grid-cols-2 gap-3">
+            <button id="start-tracking" class="bg-blue-600 hover:bg-blue-700 p-3 rounded-xl font-bold transition-all flex flex-col items-center space-y-1">
+                <i class="fas fa-play text-lg"></i>
+                <span class="text-xs">Start Tracking</span>
+            </button>
+            <button id="stop-tracking" class="bg-red-600 hover:bg-red-700 p-3 rounded-xl font-bold transition-all flex flex-col items-center space-y-1">
+                <i class="fas fa-stop text-lg"></i>
+                <span class="text-xs">Stop Tracking</span>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <button id="monitor-btn" class="bg-emerald-600 hover:bg-emerald-700 p-3 rounded-xl font-bold transition-all flex flex-col items-center space-y-1">
+                <i id="monitor-icon" class="fas fa-desktop text-lg"></i>
+                <span id="monitor-btn-text" class="text-xs">Start Monitor</span>
+            </button>
+            <button id="timer-btn" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold transition-all flex flex-col items-center space-y-1">
+                <i id="timer-icon" class="fas fa-clock text-lg"></i>
+                <span id="timer-btn-text" class="text-xs">Manual Timer</span>
+            </button>
+        </div>
+
+        <!-- Voice & Actions -->
+        <div class="grid grid-cols-2 gap-3">
+            <button id="listen-btn" class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded-xl font-bold transition-all flex flex-col items-center space-y-1">
+                <i class="fas fa-microphone text-lg"></i>
+                <span class="text-xs">Listen</span>
+            </button>
+            <button id="read-logs-btn" class="bg-teal-600 hover:bg-teal-700 p-3 rounded-xl font-bold transition-all flex flex-col items-center space-y-1">
+                <i class="fas fa-volume-up text-lg"></i>
+                <span class="text-xs">Read Logs</span>
+            </button>
+        </div>
+
+        <!-- Detection Settings -->
+        <div class="bg-slate-700/30 rounded-xl p-4 border border-slate-600/30 space-y-3">
+            <div class="flex items-center justify-between text-[10px] text-slate-500 uppercase font-bold">
+                <span>OCR Status</span>
+                <div class="flex items-center space-x-1">
+                    <div id="ocr-status-indicator" class="w-2 h-2 rounded-full bg-slate-500"></div>
+                    <span id="status-text">Inactive</span>
+                </div>
+            </div>
+            
+            <div class="space-y-1">
+                <label class="text-[10px] text-slate-500 uppercase font-bold">Live Feed Snippet</label>
+                <div id="last-detection" class="text-[11px] text-slate-400 italic bg-slate-900 p-2 rounded border border-slate-700 min-h-[2.5rem] line-clamp-2">
+                    Select a screen to begin...
+                </div>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="space-y-2">
+            <div class="text-[10px] text-slate-500 uppercase font-bold px-1">Recent Activity</div>
+            <div id="offer-history" class="max-h-24 overflow-y-auto space-y-2 pr-1 scroll-hide">
+                <div class="text-center text-[10px] text-slate-600 py-4">No activity logged yet</div>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="pt-4 border-t border-slate-700 flex justify-between items-center">
+            <button id="simulate-btn" class="text-[10px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider">
+                Simulate Reminder
+            </button>
+            <button id="send-log-btn" class="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold uppercase tracking-wider">
+                Save Logs
+            </button>
+        </div>
+    </div>
+
+    <!-- Hidden Processing -->
+    <video id="monitor-video" autoplay></video>
+    <canvas id="monitor-canvas" style="display:none;"></canvas>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-8 right-8 bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 flex items-center space-x-3 z-50">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-msg"></span>
+    </div>
+
+    <!-- Integrated Scripts -->
+    <script src="app.js"></script>
+    <script>
+        // Spark Monitor Specific Logic (OCR & Timer)
+        let timeRemaining = 240;
+        let timerId = null;
+        let isRunning = false;
+        let isMonitoring = false;
+        let monitorInterval = null;
+        let lastDetectionTime = 0;
+
+        const TARGET_PHRASES = ["pickup time is coming up", "suggest starting the trip", "avoid cancellation"];
+
+        const timerDisplay = document.getElementById('timer-display');
+        const timerBtn = document.getElementById('timer-btn');
+        const timerBtnText = document.getElementById('timer-btn-text');
+        const timerIcon = document.getElementById('timer-icon');
+        const monitorBtn = document.getElementById('monitor-btn');
+        const monitorBtnText = document.getElementById('monitor-btn-text');
+        const monitorIcon = document.getElementById('monitor-icon');
+        const ocrStatusIndicator = document.getElementById('ocr-status-indicator');
+        const statusText = document.getElementById('status-text');
+        const lastDetection = document.getElementById('last-detection');
+        const offerHistory = document.getElementById('offer-history');
+        const simulateBtn = document.getElementById('simulate-btn');
+        const video = document.getElementById('monitor-video');
+        const canvas = document.getElementById('monitor-canvas');
+
+        // Initialize Tesseract
+        const worker = Tesseract.createWorker({ logger: m => console.log(m) });
+        async function initOCR() {
+            await worker.load();
+            await worker.loadLanguage('eng');
+            await worker.initialize('eng');
+            console.log("OCR Ready");
+        }
+        initOCR();
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timeRemaining / 60);
+            const secs = timeRemaining % 60;
+            timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            timerDisplay.className = isRunning ? "timer-font text-6xl font-thin text-emerald-400 tracking-tighter" : "timer-font text-6xl font-thin text-blue-400 tracking-tighter";
+        }
+
+        function startTimer() {
+            if (timerId) clearInterval(timerId);
+            timeRemaining = 240;
+            isRunning = true;
+            updateTimerDisplay();
+            timerBtnText.textContent = "Stop Timer";
+            timerIcon.className = "fas fa-stop text-lg";
+            timerBtn.classList.replace('bg-slate-700', 'bg-red-600');
+            timerId = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                if (timeRemaining <= 0) {
+                    stopTimer();
+                    if (window.speak) window.speak("Pickup window expired!");
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerId);
+            timerId = null;
+            isRunning = false;
+            timeRemaining = 240;
+            updateTimerDisplay();
+            timerBtnText.textContent = "Manual Timer";
+            timerIcon.className = "fas fa-clock text-lg";
+            timerBtn.classList.replace('bg-red-600', 'bg-slate-700');
+        }
+
+        function handleDetection(text) {
+            const lowerText = text.toLowerCase();
+            const matches = TARGET_PHRASES.filter(phrase => lowerText.includes(phrase));
+            
+            if (matches.length >= 1) {
+                const now = Date.now();
+                if (now - lastDetectionTime < 120000) return;
+                lastDetectionTime = now;
+
+                startTimer();
+                
+                const amountMatch = text.match(/\$?\d+(\.\d{2})?/);
+                let amount = 0;
+                if (amountMatch) {
+                    amount = parseFloat(amountMatch[0].replace('$', ''));
+                }
+
+                const item = document.createElement('div');
+                item.className = "flex justify-between items-center bg-slate-900/80 p-2 rounded-lg border border-slate-700 text-[11px]";
+                item.innerHTML = `
+                    <span class="text-slate-400">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    <span class="font-bold text-amber-400 text-[10px]">Pickup Reminder</span>
+                    <span class="font-bold text-emerald-400">${amount > 0 ? '$' + amount.toFixed(2) : 'Active'}</span>
+                `;
+                if (offerHistory.children[0]?.classList.contains('text-center')) {
+                    offerHistory.innerHTML = '';
+                }
+                offerHistory.prepend(item);
+                if (window.speak) window.speak("Pickup reminder detected!");
+            }
+        }
+
+        async function startMonitoring() {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: "always" }, audio: false });
+                video.srcObject = stream;
+                isMonitoring = true;
+                ocrStatusIndicator.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                statusText.textContent = "Live";
+                monitorBtnText.textContent = "Stop Monitor";
+                monitorIcon.className = "fas fa-stop text-lg";
+                monitorBtn.classList.replace('bg-emerald-600', 'bg-red-600');
+
+                monitorInterval = setInterval(async () => {
+                    if (!isMonitoring) return;
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    const { data: { text } } = await worker.recognize(canvas);
+                    const cleanText = text.trim();
+                    if (cleanText) lastDetection.textContent = cleanText;
+                    
+                    handleDetection(cleanText);
+                }, 2000);
+
+                stream.getVideoTracks()[0].onended = () => stopMonitoring();
+            } catch (err) {
+                console.error("Capture failed", err);
+            }
+        }
+
+        function stopMonitoring() {
+            isMonitoring = false;
+            if (monitorInterval) clearInterval(monitorInterval);
+            if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+            ocrStatusIndicator.className = "w-2 h-2 rounded-full bg-slate-500";
+            statusText.textContent = "Inactive";
+            monitorBtnText.textContent = "Start Monitor";
+            monitorIcon.className = "fas fa-desktop text-lg";
+            monitorBtn.classList.replace('bg-red-600', 'bg-emerald-600');
+        }
+
+        monitorBtn.addEventListener('click', () => isMonitoring ? stopMonitoring() : startMonitoring());
+        timerBtn.addEventListener('click', () => isRunning ? stopTimer() : startTimer());
+        simulateBtn.addEventListener('click', () => {
+            const fakeText = "The pickup time is coming up. We suggest starting the trip soon to arrive at pickup on time and avoid cancellation. Estimated: $18.00";
+            lastDetection.textContent = fakeText;
+            handleDetection(fakeText);
+        });
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW Registered', reg))
+                    .catch(err => console.log('SW Failed', err));
+            });
+        }
+
+        updateTimerDisplay();
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "appId": "com.sparktracker.pro",
+  "appName": "SparkTrackerPro",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}

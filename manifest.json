@@ -1,0 +1,23 @@
+{
+  "name": "Spark & Tracker Pro",
+  "short_name": "SparkTracker",
+  "description": "Auto-Pickup Detection & Mileage Tracking for Gig Workers",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://core-normal.traeapi.us/api/ide/v1/text_to_image?prompt=spark+monitor+car+tracker+app+icon+blue+emerald+minimalist&image_size=square",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://core-normal.traeapi.us/api/ide/v1/text_to_image?prompt=spark+monitor+car+tracker+app+icon+blue+emerald+minimalist&image_size=square",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
