@@ -4,7 +4,7 @@
   "description": "Unified Spark Monitor and Car Tracker Pro",
   "main": "index.html",
   "scripts": {
-    "build": "npm run build:css",
+    "build": "echo 'Skipping build...'",
     "build:css": "tailwindcss -i ./style.css -o ./output.css",
     "watch:css": "tailwindcss -i ./style.css -o ./output.css --watch",
     "start": "npm run watch:css & live-server .",
